@@ -201,10 +201,13 @@ const DashboardManager = {
         const nutrition = StorageManager.load('todayNutrition', {});
         const goals = StorageManager.load('goals', {});
 
-        // Current weight
-        const currentWeight = weights.length > 0 
-            ? weights[weights.length - 1].weight 
-            : '--';
+        // Current weight - prioritize goals.currentWeight if set
+        let currentWeight = '--';
+        if (goals.currentWeight) {
+            currentWeight = goals.currentWeight;
+        } else if (weights.length > 0) {
+            currentWeight = weights[weights.length - 1].weight;
+        }
         document.getElementById('dashCurrentWeight').textContent = 
             currentWeight !== '--' ? currentWeight + ' kg' : currentWeight;
 
@@ -350,7 +353,14 @@ const DashboardManager = {
         if (ctx && window.Chart) {
             // Destroy existing chart if it exists
             if (window.dashboardWeightChart) {
-                window.dashboardWeightChart.destroy();
+                try {
+                    if (typeof window.dashboardWeightChart.destroy === 'function') {
+                        window.dashboardWeightChart.destroy();
+                    }
+                } catch (e) {
+                    console.log('Chart cleanup:', e.message);
+                }
+                window.dashboardWeightChart = null;
             }
 
             window.dashboardWeightChart = new Chart(ctx, {

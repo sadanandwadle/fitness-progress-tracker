@@ -117,12 +117,29 @@ const WeightTracker = {
 
     updateWeightChart: function() {
         const weights = StorageManager.load('weights', []);
+        const ctx = document.getElementById('weightProgressChart');
+        
+        if (!ctx) {
+            return;
+        }
+
+        // Destroy existing chart before creating new one
+        if (window.weightProgressChart) {
+            try {
+                if (typeof window.weightProgressChart.destroy === 'function') {
+                    window.weightProgressChart.destroy();
+                }
+            } catch (e) {
+                console.log('Chart cleanup notice:', e.message);
+            }
+            window.weightProgressChart = null;
+        }
         
         if (weights.length === 0) {
-            const ctx = document.getElementById('weightProgressChart');
-            if (ctx) {
-                ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
-            }
+            return;
+        }
+
+        if (!window.Chart) {
             return;
         }
 
@@ -133,61 +150,54 @@ const WeightTracker = {
 
         const values = weights.map(w => w.weight);
 
-        const ctx = document.getElementById('weightProgressChart');
-        if (ctx && window.Chart) {
-            if (window.weightProgressChart) {
-                window.weightProgressChart.destroy();
-            }
-
-            window.weightProgressChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: dates,
-                    datasets: [{
-                        label: 'Weight (kg)',
-                        data: values,
-                        borderColor: '#6c5ce7',
-                        backgroundColor: 'rgba(108, 92, 231, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#6c5ce7',
-                        pointBorderColor: '#fff',
-                        pointBorderWidth: 2,
-                        pointHoverRadius: 8
-                    }]
+        window.weightProgressChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Weight (kg)',
+                    data: values,
+                    borderColor: '#6c5ce7',
+                    backgroundColor: 'rgba(108, 92, 231, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 6,
+                    pointBackgroundColor: '#6c5ce7',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            color: '#7f8c8d'
+                        },
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
                         }
                     },
-                    scales: {
-                        y: {
-                            beginAtZero: false,
-                            ticks: {
-                                color: '#7f8c8d'
-                            },
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            }
+                    x: {
+                        ticks: {
+                            color: '#7f8c8d'
                         },
-                        x: {
-                            ticks: {
-                                color: '#7f8c8d'
-                            },
-                            grid: {
-                                display: false
-                            }
+                        grid: {
+                            display: false
                         }
                     }
                 }
-            });
-        }
+            }
+        });
     }
 };
 
@@ -329,7 +339,11 @@ const GoalTracker = {
     attachEventListeners: function() {
         const form = document.getElementById('goalsForm');
         if (form) {
-            form.addEventListener('submit', (e) => this.handleSaveGoal(e));
+            form.onsubmit = (e) => {
+                e.preventDefault();
+                this.handleSaveGoal();
+                return false;
+            };
         }
     },
 
@@ -338,15 +352,30 @@ const GoalTracker = {
         this.loadFormData();
     },
 
-    handleSaveGoal: function(e) {
-        e.preventDefault();
+    handleSaveGoal: function() {
+        const currentWeightEl = document.getElementById('currentWeightGoal');
+        const targetWeightEl = document.getElementById('targetWeightGoal');
 
-        const currentWeight = parseFloat(document.getElementById('currentWeightGoal').value);
-        const targetWeight = parseFloat(document.getElementById('targetWeightGoal').value);
+        if (!currentWeightEl || !targetWeightEl) {
+            showFormMessage('goalsFormMessage', 'Form elements not found', 'error');
+            return;
+        }
 
-        // Validation
-        if (!currentWeight || !targetWeight) {
+        const currentWeightStr = currentWeightEl.value.trim();
+        const targetWeightStr = targetWeightEl.value.trim();
+
+        // Validation - check if empty
+        if (!currentWeightStr || !targetWeightStr) {
             showFormMessage('goalsFormMessage', 'Please fill all fields', 'error');
+            return;
+        }
+
+        const currentWeight = parseFloat(currentWeightStr);
+        const targetWeight = parseFloat(targetWeightStr);
+
+        // Validation - check if valid numbers
+        if (isNaN(currentWeight) || isNaN(targetWeight)) {
+            showFormMessage('goalsFormMessage', 'Please enter valid numbers', 'error');
             return;
         }
 
@@ -361,24 +390,27 @@ const GoalTracker = {
         }
 
         const goals = {
-            currentWeight,
-            targetWeight
+            currentWeight: currentWeight,
+            targetWeight: targetWeight
         };
 
         StorageManager.save('goals', goals);
         showFormMessage('goalsFormMessage', 'Goal saved successfully!', 'success');
         
-        this.refresh();
+        this.displayGoals();
         DashboardManager.refresh();
     },
 
     loadFormData: function() {
         const goals = StorageManager.load('goals', {});
-        if (goals.currentWeight) {
-            document.getElementById('currentWeightGoal').value = goals.currentWeight;
+        const currentWeightInput = document.getElementById('currentWeightGoal');
+        const targetWeightInput = document.getElementById('targetWeightGoal');
+
+        if (currentWeightInput && goals.currentWeight) {
+            currentWeightInput.value = goals.currentWeight;
         }
-        if (goals.targetWeight) {
-            document.getElementById('targetWeightGoal').value = goals.targetWeight;
+        if (targetWeightInput && goals.targetWeight) {
+            targetWeightInput.value = goals.targetWeight;
         }
     },
 
