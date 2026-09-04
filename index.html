@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitTrack - Fitness Progress Tracker</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1><i class="fas fa-dumbbell"></i> FitTrack</h1>
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-link active" data-section="dashboard">
+                    <i class="fas fa-chart-line"></i> Dashboard
+                </a>
+                <a href="#" class="nav-link" data-section="weight">
+                    <i class="fas fa-weight"></i> Weight
+                </a>
+                <a href="#" class="nav-link" data-section="workouts">
+                    <i class="fas fa-dumbbell"></i> Workouts
+                </a>
+                <a href="#" class="nav-link" data-section="nutrition">
+                    <i class="fas fa-apple-alt"></i> Nutrition
+                </a>
+                <a href="#" class="nav-link" data-section="measurements">
+                    <i class="fas fa-ruler"></i> Measurements
+                </a>
+                <a href="#" class="nav-link" data-section="goals">
+                    <i class="fas fa-bullseye"></i> Goals
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="theme-toggle" id="themeToggle" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="clear-data-btn" id="clearDataBtn" title="Clear all data">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- DASHBOARD SECTION -->
+            <section id="dashboard" class="section active">
+                <h2>Dashboard</h2>
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-weight"></i></div>
+                        <div class="stat-content">
+                            <p class="stat-label">Current Weight</p>
+                            <p class="stat-value" id="dashCurrentWeight">-- kg</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-target"></i></div>
+                        <div class="stat-content">
+                            <p class="stat-label">Goal Weight</p>
+                            <p class="stat-value" id="dashGoalWeight">-- kg</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-arrow-down"></i></div>
+                        <div class="stat-content">
+                            <p class="stat-label">Weight Change</p>
+                            <p class="stat-value" id="dashWeightChange">-- kg</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-fire"></i></div>
+                        <div class="stat-content">
+                            <p class="stat-label">Calories Today</p>
+                            <p class="stat-value" id="dashCalories">-- kcal</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-utensils"></i></div>
+                        <div class="stat-content">
+                            <p class="stat-label">Protein Today</p>
+                            <p class="stat-value" id="dashProtein">-- g</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-droplet"></i></div>
+                        <div class="stat-content">
+                            <p class="stat-label">Water Intake</p>
+                            <p class="stat-value" id="dashWater">-- L</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <h3>Weight Progress Goal</h3>
+                    <div class="progress-card">
+                        <div class="progress-info">
+                            <span id="dashProgressPercent">0%</span>
+                            <p>Complete</p>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="dashProgressBar"></div>
+                        </div>
+                        <p class="progress-text" id="dashProgressText">Set your goals</p>
+                    </div>
+                </div>
+
+                <div class="recent-activities">
+                    <h3>Recent Activities</h3>
+                    <div id="recentActivities" class="activities-list">
+                        <p class="empty-state">No activities yet. Start tracking!</p>
+                    </div>
+                </div>
+
+                <div class="weight-chart-container">
+                    <h3>Weight Trend</h3>
+                    <canvas id="weightChart" height="80"></canvas>
+                </div>
+            </section>
+
+            <!-- WEIGHT SECTION -->
+            <section id="weight" class="section">
+                <h2>Weight Tracker</h2>
+                
+                <div class="form-card">
+                    <h3>Add Weight Entry</h3>
+                    <form id="weightForm">
+                        <div class="form-group">
+                            <label for="weightDate">Date</label>
+                            <input type="date" id="weightDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="weightValue">Weight (kg)</label>
+                            <input type="number" id="weightValue" step="0.1" placeholder="e.g., 75.5" required>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> Add Entry
+                        </button>
+                    </form>
+                    <div id="weightFormMessage" class="form-message"></div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Weight Progress Chart</h3>
+                    <canvas id="weightProgressChart" height="80"></canvas>
+                </div>
+
+                <div class="history-card">
+                    <h3>Weight History</h3>
+                    <div class="table-responsive">
+                        <table id="weightTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Change</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="weightTableBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">No weight entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WORKOUTS SECTION -->
+            <section id="workouts" class="section">
+                <h2>Workout Tracker</h2>
+
+                <div class="form-card">
+                    <h3>Log Workout</h3>
+                    <form id="workoutForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="workoutDate">Date</label>
+                                <input type="date" id="workoutDate" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="workoutBodyPart">Body Part</label>
+                                <select id="workoutBodyPart" required>
+                                    <option value="">Select Body Part</option>
+                                    <option value="Chest">Chest</option>
+                                    <option value="Back">Back</option>
+                                    <option value="Legs">Legs</option>
+                                    <option value="Shoulders">Shoulders</option>
+                                    <option value="Biceps">Biceps</option>
+                                    <option value="Triceps">Triceps</option>
+                                    <option value="Forearms">Forearms</option>
+                                    <option value="Core">Core</option>
+                                    <option value="Full Body">Full Body</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="exerciseName">Exercise Name</label>
+                                <input type="text" id="exerciseName" placeholder="e.g., Bench Press" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exerciseWeight">Weight (kg)</label>
+                                <input type="number" id="exerciseWeight" step="0.5" placeholder="e.g., 60" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="exerciseReps">Reps</label>
+                                <input type="number" id="exerciseReps" placeholder="e.g., 8" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="exerciseSets">Sets</label>
+                                <input type="number" id="exerciseSets" placeholder="e.g., 3" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> Log Workout
+                        </button>
+                    </form>
+                    <div id="workoutFormMessage" class="form-message"></div>
+                </div>
+
+                <div class="stats-row">
+                    <div class="stat-small">
+                        <p>Total Workouts</p>
+                        <p class="number" id="totalWorkouts">0</p>
+                    </div>
+                    <div class="stat-small">
+                        <p>This Month</p>
+                        <p class="number" id="monthWorkouts">0</p>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <label for="bodyPartFilter">Filter by Body Part:</label>
+                    <select id="bodyPartFilter">
+                        <option value="">All Body Parts</option>
+                        <option value="Chest">Chest</option>
+                        <option value="Back">Back</option>
+                        <option value="Legs">Legs</option>
+                        <option value="Shoulders">Shoulders</option>
+                        <option value="Biceps">Biceps</option>
+                        <option value="Triceps">Triceps</option>
+                        <option value="Forearms">Forearms</option>
+                        <option value="Core">Core</option>
+                        <option value="Full Body">Full Body</option>
+                    </select>
+                </div>
+
+                <div class="history-card">
+                    <h3>Workout History</h3>
+                    <div id="workoutHistory" class="workout-list">
+                        <p class="empty-state">No workouts logged yet</p>
+                    </div>
+                </div>
+
+                <div class="pr-card">
+                    <h3>Personal Records</h3>
+                    <div id="prList" class="pr-list">
+                        <p class="empty-state">No exercises recorded yet</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- NUTRITION SECTION -->
+            <section id="nutrition" class="section">
+                <h2>Nutrition Tracker</h2>
+
+                <div class="form-card">
+                    <h3>Set Daily Targets</h3>
+                    <form id="targetsForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="calorieTarget">Daily Calorie Target (kcal)</label>
+                                <input type="number" id="calorieTarget" placeholder="e.g., 2000" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="proteinTarget">Daily Protein Target (g)</label>
+                                <input type="number" id="proteinTarget" placeholder="e.g., 160" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="carbTarget">Daily Carbs Target (g)</label>
+                                <input type="number" id="carbTarget" placeholder="e.g., 250" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="fatTarget">Daily Fat Target (g)</label>
+                                <input type="number" id="fatTarget" placeholder="e.g., 70" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="waterTarget">Daily Water Target (L)</label>
+                                <input type="number" id="waterTarget" step="0.1" placeholder="e.g., 3.5" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Save Targets
+                        </button>
+                    </form>
+                    <div id="targetsMessage" class="form-message"></div>
+                </div>
+
+                <div class="form-card">
+                    <h3>Log Nutrition</h3>
+                    <form id="nutritionForm">
+                        <div class="form-group">
+                            <label for="nutritionDate">Date</label>
+                            <input type="date" id="nutritionDate" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nutritionCalories">Calories (kcal)</label>
+                                <input type="number" id="nutritionCalories" placeholder="e.g., 450" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nutritionProtein">Protein (g)</label>
+                                <input type="number" id="nutritionProtein" placeholder="e.g., 30" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="nutritionCarbs">Carbs (g)</label>
+                                <input type="number" id="nutritionCarbs" placeholder="e.g., 50" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nutritionFat">Fat (g)</label>
+                                <input type="number" id="nutritionFat" placeholder="e.g., 15" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="nutritionWater">Water (L)</label>
+                            <input type="number" id="nutritionWater" step="0.1" placeholder="e.g., 0.5" required>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> Log Entry
+                        </button>
+                    </form>
+                    <div id="nutritionFormMessage" class="form-message"></div>
+                </div>
+
+                <div class="nutrition-today">
+                    <h3>Today's Nutrition Progress</h3>
+                    <div class="progress-grid">
+                        <div class="progress-item">
+                            <p class="progress-label">Calories</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="calorieProgress"></div>
+                            </div>
+                            <p class="progress-value" id="calorieValue">0 / 0 kcal</p>
+                        </div>
+                        <div class="progress-item">
+                            <p class="progress-label">Protein</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="proteinProgress"></div>
+                            </div>
+                            <p class="progress-value" id="proteinValue">0 / 0 g</p>
+                        </div>
+                        <div class="progress-item">
+                            <p class="progress-label">Carbs</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="carbProgress"></div>
+                            </div>
+                            <p class="progress-value" id="carbValue">0 / 0 g</p>
+                        </div>
+                        <div class="progress-item">
+                            <p class="progress-label">Fat</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="fatProgress"></div>
+                            </div>
+                            <p class="progress-value" id="fatValue">0 / 0 g</p>
+                        </div>
+                        <div class="progress-item">
+                            <p class="progress-label">Water</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="waterProgress"></div>
+                            </div>
+                            <p class="progress-value" id="waterValue">0 / 0 L</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-card">
+                    <h3>Nutrition History</h3>
+                    <div class="table-responsive">
+                        <table id="nutritionTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Calories</th>
+                                    <th>Protein</th>
+                                    <th>Carbs</th>
+                                    <th>Fat</th>
+                                    <th>Water</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nutritionTableBody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">No nutrition entries yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MEASUREMENTS SECTION -->
+            <section id="measurements" class="section">
+                <h2>Body Measurements</h2>
+
+                <div class="form-card">
+                    <h3>Record Measurements</h3>
+                    <form id="measurementForm">
+                        <div class="form-group">
+                            <label for="measurementDate">Date</label>
+                            <input type="date" id="measurementDate" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="chestMeasurement">Chest (cm)</label>
+                                <input type="number" id="chestMeasurement" step="0.1" placeholder="e.g., 100">
+                            </div>
+                            <div class="form-group">
+                                <label for="waistMeasurement">Waist (cm)</label>
+                                <input type="number" id="waistMeasurement" step="0.1" placeholder="e.g., 85">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="armsMeasurement">Arms (cm)</label>
+                                <input type="number" id="armsMeasurement" step="0.1" placeholder="e.g., 32">
+                            </div>
+                            <div class="form-group">
+                                <label for="shouldersMeasurement">Shoulders (cm)</label>
+                                <input type="number" id="shouldersMeasurement" step="0.1" placeholder="e.g., 120">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="thighsMeasurement">Thighs (cm)</label>
+                            <input type="number" id="thighsMeasurement" step="0.1" placeholder="e.g., 60">
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-plus"></i> Record Measurements
+                        </button>
+                    </form>
+                    <div id="measurementFormMessage" class="form-message"></div>
+                </div>
+
+                <div class="measurements-latest">
+                    <h3>Latest Measurements</h3>
+                    <div class="measurements-grid" id="latestMeasurements">
+                        <div class="measurement-card">
+                            <p class="measurement-label">Chest</p>
+                            <p class="measurement-value">--</p>
+                            <p class="measurement-unit">cm</p>
+                        </div>
+                        <div class="measurement-card">
+                            <p class="measurement-label">Waist</p>
+                            <p class="measurement-value">--</p>
+                            <p class="measurement-unit">cm</p>
+                        </div>
+                        <div class="measurement-card">
+                            <p class="measurement-label">Arms</p>
+                            <p class="measurement-value">--</p>
+                            <p class="measurement-unit">cm</p>
+                        </div>
+                        <div class="measurement-card">
+                            <p class="measurement-label">Shoulders</p>
+                            <p class="measurement-value">--</p>
+                            <p class="measurement-unit">cm</p>
+                        </div>
+                        <div class="measurement-card">
+                            <p class="measurement-label">Thighs</p>
+                            <p class="measurement-value">--</p>
+                            <p class="measurement-unit">cm</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="history-card">
+                    <h3>Measurements History</h3>
+                    <div class="table-responsive">
+                        <table id="measurementTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Chest</th>
+                                    <th>Waist</th>
+                                    <th>Arms</th>
+                                    <th>Shoulders</th>
+                                    <th>Thighs</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="measurementTableBody">
+                                <tr>
+                                    <td colspan="7" class="empty-state">No measurements recorded yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- GOALS SECTION -->
+            <section id="goals" class="section">
+                <h2>Fitness Goals</h2>
+
+                <div class="form-card">
+                    <h3>Set Weight Goal</h3>
+                    <form id="goalsForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="currentWeightGoal">Current Weight (kg)</label>
+                                <input type="number" id="currentWeightGoal" step="0.1" placeholder="e.g., 85" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="targetWeightGoal">Target Weight (kg)</label>
+                                <input type="number" id="targetWeightGoal" step="0.1" placeholder="e.g., 75" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-primary">
+                            <i class="fas fa-save"></i> Save Goal
+                        </button>
+                    </form>
+                    <div id="goalsFormMessage" class="form-message"></div>
+                </div>
+
+                <div class="goal-overview">
+                    <h3>Goal Overview</h3>
+                    <div class="goal-card">
+                        <div class="goal-stats">
+                            <div class="goal-stat">
+                                <p class="label">Current Weight</p>
+                                <p class="value" id="goalsCurrentWeight">-- kg</p>
+                            </div>
+                            <div class="goal-stat">
+                                <p class="label">Target Weight</p>
+                                <p class="value" id="goalsTargetWeight">-- kg</p>
+                            </div>
+                            <div class="goal-stat">
+                                <p class="label">Remaining</p>
+                                <p class="value" id="goalsRemaining">-- kg</p>
+                            </div>
+                        </div>
+                        <div class="goal-progress">
+                            <div class="progress-header">
+                                <span id="goalsProgressPercent">0%</span>
+                                <span>Progress</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="goalsProgressBar"></div>
+                            </div>
+                            <p class="progress-text" id="goalsProgressText">Set your goals to get started</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/progress.js"></script>
+    <script src="js/workout.js"></script>
+    <script src="js/nutrition.js"></script>
+</body>
+</html>
